@@ -9,14 +9,11 @@ import Loader from './components/common/Loader';
  * Components will only be loaded when they are needed
  */
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const EventDetail = lazy(() => import('./pages/EventDetail'));
 const EventForm = lazy(() => import('./pages/EventForm'));
-
-
-/**
- * These temporary components help to ensure routing works
- */
-const EventDetail = () => <div className="container">Event Detail Page</div>;
-const UserProfile = () => <div className="container">User Profile Page</div>;
+const UserProfile = lazy(() => import('./pages/UserProfile'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
 const NotFound = () => <div className="container">404 - Page Not Found</div>;
 
 /**
@@ -31,6 +28,10 @@ function App() {
         <Routes>
           {/* Redirect root path to dashboard */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+          {/* Authentication routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           {/* Main application routes */}
           <Route path="/dashboard" element={<Dashboard />} />
