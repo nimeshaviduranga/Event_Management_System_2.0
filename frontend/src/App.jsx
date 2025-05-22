@@ -1,12 +1,21 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layouts/Layout';
+import { lazy, Suspense } from 'react';
+import Loader from './components/common/Loader';
+
+
+/**
+ * Lazy load components to improve initial load performance
+ * Components will only be loaded when they are needed
+ */
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const EventForm = lazy(() => import('./pages/EventForm'));
+
 
 /**
  * These temporary components help to ensure routing works
  */
-const Dashboard = () => <div className="container">Dashboard Page</div>;
 const EventDetail = () => <div className="container">Event Detail Page</div>;
-const EventForm = () => <div className="container">Create/Edit Event Form</div>;
 const UserProfile = () => <div className="container">User Profile Page</div>;
 const NotFound = () => <div className="container">404 - Page Not Found</div>;
 
@@ -18,17 +27,22 @@ const NotFound = () => <div className="container">404 - Page Not Found</div>;
 function App() {
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Suspense fallback={<Loader />}>
+        <Routes>
+          {/* Redirect root path to dashboard */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/events/create" element={<EventForm />} />
-        <Route path="/events/edit/:id" element={<EventForm />} />
-        <Route path="/profile" element={<UserProfile />} />
+          {/* Main application routes */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/events/create" element={<EventForm />} />
+          <Route path="/events/edit/:id" element={<EventForm />} />
+          <Route path="/profile" element={<UserProfile />} />
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Catch-all route for 404 errors */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </Layout>
   );
 }
