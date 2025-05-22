@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../../features/auth/authSlice';
+import Button from '../common/Button';
 /**
  * Layout Component
  * This component serves as the main layout for the application.
@@ -8,9 +10,23 @@ import PropTypes from 'prop-types';
  * @param {React.ReactNode} props.children - Child components to render in the layout
  */
 const Layout = ({ children }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // Get authentication state from Redux store
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  // Handle logout
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
   return (
     <div className="app-container">
-      <header className="app-header">
+      <header className="app-header" style={{
+        borderBottom: '1px solid var(--medium-gray)',
+        marginBottom: '20px'
+      }}>
         <div className="container d-flex justify-between align-center" style={{ padding: '16px 0' }}>
           <div className="logo">
             <Link to="/" style={{ color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1.5rem', textDecoration: 'none' }}>
@@ -19,16 +35,39 @@ const Layout = ({ children }) => {
           </div>
 
           <nav className="main-nav">
-            {/* Using Link instead of <a> to prevent page reload */}
-            <Link to="/dashboard" className="nav-link" style={{ marginRight: '20px', color: 'var(--text-color)', textDecoration: 'none' }}>
-              Dashboard
-            </Link>
-            <Link to="/events/create" className="nav-link" style={{ marginRight: '20px', color: 'var(--text-color)', textDecoration: 'none' }}>
-              Create Event
-            </Link>
-            <Link to="/profile" className="nav-link" style={{ color: 'var(--text-color)', textDecoration: 'none' }}>
-              Profile
-            </Link>
+
+            {/* Navigation for authenticated users */}
+            {isAuthenticated ? (
+              <div className="d-flex align-center">
+                <Link to="/dashboard" className="nav-link" style={{ marginRight: '20px', color: 'var(--text-color)', textDecoration: 'none' }}>
+                  Dashboard
+                </Link>
+                <Link to="/events/create" className="nav-link" style={{ marginRight: '20px', color: 'var(--text-color)', textDecoration: 'none' }}>
+                  Create Event
+                </Link>
+                <Link to="/profile" className="nav-link" style={{ color: 'var(--text-color)', textDecoration: 'none' }}>
+                  Profile
+                </Link>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ marginRight: '10px', color: 'var(--text-color)' }}>
+                    {user?.name || 'User'}
+                  </span>
+                  <Button variant="outline" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              /* Navigation for non-authenticated users */
+              <div>
+                <Link to="/login" className="nav-link" style={{ marginRight: '20px', color: 'var(--text-color)', textDecoration: 'none' }}>
+                  Login
+                </Link>
+                <Link to="/register" className="nav-link" style={{ color: 'var(--text-color)', textDecoration: 'none' }}>
+                  Register
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
       </header>
