@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../api/apiConfig';
-import { EVENTS } from '../../api/endpoints';
+import { EVENTS } from '../../api/apiEndpoints';
 
 /**
  * Initial state for events slice

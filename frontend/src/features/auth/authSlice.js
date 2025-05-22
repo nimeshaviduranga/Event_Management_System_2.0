@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../api/apiConfig';
-import { AUTH } from '../../api/endpoints';
+import { AUTH } from '../../api/apiEndpoints';
 
 /**
  * Initial state for auth slice

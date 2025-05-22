@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()], 4server: {
+  plugins: [react()], server: {
   port: 3000, // Set the development server port
   proxy: {
     // Proxy API requests to the backend server (will be used later)
