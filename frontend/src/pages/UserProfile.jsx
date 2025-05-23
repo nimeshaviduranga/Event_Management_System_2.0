@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { USERS } from '../api/endpoints';
+import { USERS } from '../api/apiEndpoints.js';
 import api from '../api/apiConfig';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
