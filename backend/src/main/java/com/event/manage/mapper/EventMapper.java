@@ -10,6 +10,8 @@ import org.mapstruct.Named;
 
 import com.event.manage.model.dto.EventDto;
 import com.event.manage.model.dto.EventDto.AttendeeDto;
+import com.event.manage.model.dto.EventDto.EventSummaryDto;
+import com.event.manage.model.dto.EventDto.EventUpdateDto;
 import com.event.manage.model.entity.Attendance;
 import com.event.manage.model.entity.Event;
 import com.event.manage.model.entity.User;
@@ -31,6 +33,44 @@ public interface EventMapper {
     @Mapping(target = "attendees", source = "attendances", qualifiedByName = "attendancesToAttendeeDtos")
     @Mapping(target = "attendeeCount", expression = "java(event.getAttendances().size())")
     EventDto toDto(Event event);
+
+    /**
+     * Convert Event entity to EventDto with attendance information.
+     *
+     * @param event The event entity
+     * @param isAttending Whether the current user is attending
+     * @param attendanceStatus The current user's attendance status
+     * @return EventDto with attendance information
+     */
+    default EventDto toDto(Event event, boolean isAttending, String attendanceStatus) {
+        EventDto dto = toDto(event);
+        dto.setAttending(isAttending);
+        dto.setAttendanceStatus(attendanceStatus);
+        return dto;
+    }
+
+    /**
+     * Convert Event entity to EventSummaryDto.
+     *
+     * @param event The event entity
+     * @return EventSummaryDto
+     */
+    default EventSummaryDto toSummaryDto(Event event) {
+        return EventSummaryDto.builder()
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .hostName(event.getHost().getName())
+            .startTime(event.getStartTime())
+            .endTime(event.getEndTime())
+            .location(event.getLocation())
+            .visibility(event.getVisibility())
+            .attendeeCount(event.getAttendances().size())
+            .isUpcoming(event.isFuture())
+            .isOngoing(event.isOngoing())
+            .isPast(event.isPast())
+            .build();
+    }
 
     /**
      * Convert list of Event entities to list of EventDtos.
@@ -69,7 +109,7 @@ public interface EventMapper {
     Event createDtoToEntity(EventDto.EventCreateDto createDto);
 
     /**
-     * Update Event entity from EventDto.
+     * Update Event entity from EventCreateDto.
      *
      * @param eventDto The event DTO with updated values
      * @param event The event entity to update
@@ -81,6 +121,21 @@ public interface EventMapper {
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "attendances", ignore = true)
     void updateEntityFromDto(EventDto.EventCreateDto eventDto, @MappingTarget Event event);
+
+    /**
+     * Update Event entity from EventUpdateDto.
+     *
+     * @param updateDto The event update DTO
+     * @param event The event entity to update
+     */
+    default void updateEntityFromDto(EventUpdateDto updateDto, @MappingTarget Event event) {
+        event.setTitle(updateDto.getTitle());
+        event.setDescription(updateDto.getDescription());
+        event.setStartTime(updateDto.getStartTime());
+        event.setEndTime(updateDto.getEndTime());
+        event.setLocation(updateDto.getLocation());
+        event.setVisibility(updateDto.getVisibility());
+    }
 
     /**
      * Convert a list of Attendance entities to a list of AttendeeDtos.
@@ -100,6 +155,7 @@ public interface EventMapper {
                     return AttendeeDto.builder()
                             .userId(user.getId())
                             .userName(user.getName())
+                            .userEmail(user.getEmail())
                             .status(attendance.getStatus().name())
                             .respondedAt(attendance.getRespondedAt())
                             .build();
