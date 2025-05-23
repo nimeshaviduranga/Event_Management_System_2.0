@@ -1,6 +1,7 @@
 package com.event.manage.mapper;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.mapstruct.Mapper;
@@ -30,9 +31,37 @@ public interface EventMapper {
      */
     @Mapping(target = "hostId", source = "host.id")
     @Mapping(target = "hostName", source = "host.name")
-    @Mapping(target = "attendees", source = "attendances", qualifiedByName = "attendancesToAttendeeDtos")
+    @Mapping(target = "attendees", source = "attendances", qualifiedByName = "mapAttendances")
     @Mapping(target = "attendeeCount", expression = "java(event.getAttendances().size())")
+    @Mapping(target = "isAttending", ignore = true) // Add this
+    @Mapping(target = "attendanceStatus", ignore = true) // Add this
     EventDto toDto(Event event);
+
+    /**
+     * Map a Set of Attendance entities to a List of AttendeeDto objects.
+     *
+     * @param attendances The Set of Attendance entities
+     * @return List of AttendeeDto objects
+     */
+    @Named("mapAttendances")
+    default List<AttendeeDto> mapAttendances(Set<Attendance> attendances) {
+        if (attendances == null) {
+            return null;
+        }
+
+        return attendances.stream()
+                .map(attendance -> {
+                    User user = attendance.getUser();
+                    return AttendeeDto.builder()
+                            .userId(user.getId())
+                            .userName(user.getName())
+                            .userEmail(user.getEmail())
+                            .status(attendance.getStatus().name())
+                            .respondedAt(attendance.getRespondedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
 
     /**
      * Convert Event entity to EventDto with attendance information.
@@ -57,19 +86,19 @@ public interface EventMapper {
      */
     default EventSummaryDto toSummaryDto(Event event) {
         return EventSummaryDto.builder()
-            .id(event.getId())
-            .title(event.getTitle())
-            .description(event.getDescription())
-            .hostName(event.getHost().getName())
-            .startTime(event.getStartTime())
-            .endTime(event.getEndTime())
-            .location(event.getLocation())
-            .visibility(event.getVisibility())
-            .attendeeCount(event.getAttendances().size())
-            .isUpcoming(event.isFuture())
-            .isOngoing(event.isOngoing())
-            .isPast(event.isPast())
-            .build();
+                .id(event.getId())
+                .title(event.getTitle())
+                .description(event.getDescription())
+                .hostName(event.getHost().getName())
+                .startTime(event.getStartTime())
+                .endTime(event.getEndTime())
+                .location(event.getLocation())
+                .visibility(event.getVisibility())
+                .attendeeCount(event.getAttendances().size())
+                .isUpcoming(event.isFuture())
+                .isOngoing(event.isOngoing())
+                .isPast(event.isPast())
+                .build();
     }
 
     /**
@@ -135,31 +164,5 @@ public interface EventMapper {
         event.setEndTime(updateDto.getEndTime());
         event.setLocation(updateDto.getLocation());
         event.setVisibility(updateDto.getVisibility());
-    }
-
-    /**
-     * Convert a list of Attendance entities to a list of AttendeeDtos.
-     *
-     * @param attendances The list of attendance entities
-     * @return List of AttendeeDtos
-     */
-    @Named("attendancesToAttendeeDtos")
-    default List<AttendeeDto> attendancesToAttendeeDtos(List<Attendance> attendances) {
-        if (attendances == null) {
-            return null;
-        }
-
-        return attendances.stream()
-                .map(attendance -> {
-                    User user = attendance.getUser();
-                    return AttendeeDto.builder()
-                            .userId(user.getId())
-                            .userName(user.getName())
-                            .userEmail(user.getEmail())
-                            .status(attendance.getStatus().name())
-                            .respondedAt(attendance.getRespondedAt())
-                            .build();
-                })
-                .collect(Collectors.toList());
     }
 }
