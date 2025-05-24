@@ -1,30 +1,37 @@
+# Use official OpenJDK image as a base
+FROM openjdk:17-jdk-slim AS build
 
-# Build stage
-FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
+# Set working directory
 WORKDIR /app
 
+# Copy Maven wrapper and pom.xml
+COPY mvnw .
+COPY .mvn .mvn
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
 
-COPY src ./src
-RUN mvn clean package -DskipTests
+# Make the Maven wrapper executable
+RUN chmod +x mvnw
 
-FROM eclipse-temurin:17-jre-alpine
+# Download dependencies
+RUN ./mvnw dependency:go-offline -B
+
+# Copy source code
+COPY src src
+
+# Build the application
+RUN ./mvnw package -DskipTests
+
+# Create a lightweight image for running the application
+FROM openjdk:17-jre-slim
+
+# Set working directory
 WORKDIR /app
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
+# Copy the built JAR from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-RUN chown appuser:appgroup app.jar
-
-USER appuser
-
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
-
+# Expose the port
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/actuator/health || exit 1
-
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# Set the entrypoint
+ENTRYPOINT ["java", "-jar", "app.jar"]
